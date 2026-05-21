@@ -1,3 +1,5 @@
+> ⚠️ **Mirror** — This repository is mirrored from [GitLab](https://gitlab.com/opensecdevops/osdo-vscode). Please submit issues and merge requests there.
+
 # OSDO Security — Extensión para VS Code
 
 [![VS Code Marketplace](https://img.shields.io/badge/VS%20Code-OSDO%20Security-blue)](https://marketplace.visualstudio.com/items?itemName=opensecdevops.osdo-security)
