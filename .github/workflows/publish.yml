@@ -1,0 +1,89 @@
+name: Publicar extensión OSDO para VS Code
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      pre-release:
+        description: 'Publicar como pre-release'
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    name: Build y Publicar
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar TypeScript
+        run: npm run compile
+
+      - name: Verificar que compila sin errores
+        run: npx tsc --noEmit
+
+      - name: Extraer versión del tag
+        if: github.event_name == 'push'
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          # Actualizar versión en package.json
+          npm version "$VERSION" --no-git-tag-version
+
+      - name: Package extensión (.vsix)
+        run: npx @vscode/vsce package ${{ inputs.pre-release == true && '--pre-release' || '' }}
+
+      - name: Publicar en VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+        run: |
+          npx @vscode/vsce publish \
+            --pat "$VSCE_PAT" \
+            ${{ inputs.pre-release == true && '--pre-release' || '' }}
+
+      - name: Publicar en Open VSX (Gitpod, VSCodium)
+        env:
+          OVSX_TOKEN: ${{ secrets.OVSX_TOKEN }}
+        run: |
+          npx ovsx publish *.vsix \
+            --pat "$OVSX_TOKEN" \
+            ${{ inputs.pre-release == true && '--pre-release' || '' }}
+
+      - name: Subir .vsix como artefacto del release
+        uses: actions/upload-artifact@v4
+        with:
+          name: osdo-security-vsix
+          path: '*.vsix'
+
+      - name: Crear GitHub Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: '*.vsix'
+          generate_release_notes: true
+          body: |
+            ## OSDO Security Extension ${{ env.VERSION }}
+
+            ### Instalación
+            ```bash
+            code --install-extension opensecdevops.osdo-security
+            ```
+
+            O busca "OSDO Security" en el panel de extensiones de VS Code.
+
+            ### Requisitos
+            - VS Code 1.85+
+            - @osdo/cli instalado: `npm install -g @osdo/cli`

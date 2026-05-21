@@ -1,0 +1,118 @@
+{
+  "name": "osdo-security",
+  "displayName": "OSDO Security",
+  "description": "DevSecOps integrado — scans, auditorías y reportes de seguridad directamente en VS Code",
+  "version": "0.1.0",
+  "publisher": "opensecdevops",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opensecdevops/osdo-vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/opensecdevops/osdo-vscode/issues"
+  },
+  "homepage": "https://github.com/opensecdevops/osdo-vscode#readme",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Linters", "Testing", "Other"],
+  "keywords": ["security", "devsecops", "sast", "sca", "secrets", "osdo", "sarif"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "osdo.scan",
+        "title": "OSDO: Escanear Seguridad del Proyecto",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "osdo.scanFile",
+        "title": "OSDO: Escanear Archivo Actual",
+        "icon": "$(search)"
+      },
+      {
+        "command": "osdo.audit",
+        "title": "OSDO: Auditar Pipeline CI/CD",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "osdo.init",
+        "title": "OSDO: Inicializar Proyecto",
+        "icon": "$(add)"
+      },
+      {
+        "command": "osdo.clearDiagnostics",
+        "title": "OSDO: Limpiar Diagnósticos",
+        "icon": "$(clear-all)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "osdo.scanFile",
+          "when": "editorHasDocument",
+          "group": "osdo@1"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "osdo.scan",
+          "group": "osdo@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "OSDO Security",
+      "properties": {
+        "osdo.cli.path": {
+          "type": "string",
+          "default": "osdo",
+          "description": "Ruta al binario de OSDO CLI. Por defecto busca 'osdo' en el PATH del sistema."
+        },
+        "osdo.scan.onSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ejecutar osdo scan automáticamente al guardar archivos"
+        },
+        "osdo.scan.severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "default": "high",
+          "description": "Severidad mínima para reportar hallazgos"
+        },
+        "osdo.scan.scanType": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["sast", "sca", "secrets", "container", "iac"]
+          },
+          "default": ["sast", "secrets"],
+          "description": "Tipos de escaneo a ejecutar por defecto"
+        },
+        "osdo.statusBar.show": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mostrar puntuación de seguridad en la barra de estado"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vscode/vsce": "^2.24.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.3.0"
+  }
+}
